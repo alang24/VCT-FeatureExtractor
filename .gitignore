@@ -1,1 +1,6 @@
 __pycache__/
+test_files/
+test2_files/
+test.html
+test2.html
+*.txt
