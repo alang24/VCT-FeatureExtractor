@@ -52,13 +52,15 @@ def extract_groupstandings(both_groups_soup, group_name):
     return total_df
 
 
-def combine_groupstandings(soup):
+def combine_groupstandings(soup,region,stage):
     """
     Main function that takes in the main HTML webpage of the group and outputs a table that has the group standing
     results and other information from Group A and Group B. Uses make_groupstandings() as helper function to get table
     from each group, then combines them into one.
 
     :param soup: Soup object containing the HTML page of the entire group stage, contains info on both groups
+    :param region: string specifying region
+    :param stage: string specifying VCT stage
     :return: DataFrame with group standings results and other information
     """
 
@@ -74,6 +76,6 @@ def combine_groupstandings(soup):
     bothtab = bothtab.set_index("Team")
 
     # Export csv
-    bothtab.to_csv('groupstandings.csv')
+    bothtab.to_csv("Results/st"+stage+"_"+region+'groupstandings.csv')
     return
 

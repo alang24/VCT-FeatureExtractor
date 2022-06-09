@@ -2,17 +2,26 @@ import pandas as pd
 import re
 import numpy as np
 
+
+
+
 def getrounds(row,statscontainer):
     gamesoup = statscontainer.find("div",attrs={"class":"vm-stats-game","data-game-id":row["Map ID"]})
     gameheader = gamesoup.find("div",class_="vm-stats-game-header")
     namerounds = []
     for team in (gameheader.find_all("div",class_="team")):
+
         namerounds.append(team.find("div",class_="team-name").text.strip())
         namerounds.append(team.find("div",class_="score").text.strip())
+        for half in team.find_all("span"):
+            side = half.get('class')[0].split('-')[1].strip()
+            namerounds.append("Atk" if side == "t" else "Def")
+            namerounds.append(half.text.strip())
+    print(namerounds)
     return namerounds
 
 def findwinner(row):
-    return row["Team A"] if int(row["Team A Rnds"]) > int(row["Team B Rnds"]) else row["Team B"]
+    return row["Team A"] if int(row["A:Rnds"]) > int(row["B:Rnds"]) else row["Team B"]
    
 def get_seriesinfo_maps(mapsstats_soup):
     # Soup that contains row of maps
@@ -30,7 +39,7 @@ def get_seriesinfo_maps(mapsstats_soup):
     statscontainer = mapsstats_soup.find("div",class_="vm-stats-container")
 
     # Get number of rounds won by each team and figure out the winner of map
-    col = ["Team A","Team A Rnds","Team B","Team B Rnds"]
+    col = [team+':'+param for team in ['A','B'] for param in ["Name","Rnds","First Half Side", "First Half Rnds","Second Half Side", "Second Half Rnds"]]
     df[col] = df.apply(getrounds,axis=1,result_type='expand',args=(statscontainer,))
     df["Winner"] = df.apply(findwinner,axis=1)
     return df
@@ -82,10 +91,7 @@ def combine_teams_overview(mapsstats_soup,seriesinfo):
     bo3 = []
 
     for ind, mapinfo in seriesinfo.iterrows():
-
         gamesoup = statscontainer.find("div",attrs={"class":"vm-stats-game","data-game-id":mapinfo["Map ID"]})
-        
-        
         bothteams_soup  = gamesoup.find_all("table",class_="wf-table-inset mod-overview")
         team1 = extract_team_overview(bothteams_soup[0])
         team2 = extract_team_overview(bothteams_soup[1])
@@ -94,7 +100,7 @@ def combine_teams_overview(mapsstats_soup,seriesinfo):
         bo3.append(bothteams_df)
         
     final_df = pd.concat(bo3,ignore_index=True)
-    teamlist = list(final_df.loc[:,"Team"].drop_duplicates())
-    final_df = final_df.set_index(["Side","Map","Team"])
-    return final_df,teamlist
+    #teamlist = list(final_df.loc[:,"Team"].drop_duplicates())
+    final_df = final_df.set_index(["Map","Side","Team"])
+    return final_df#,teamlist
 

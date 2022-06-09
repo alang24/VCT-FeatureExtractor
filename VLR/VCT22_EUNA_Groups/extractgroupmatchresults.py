@@ -53,13 +53,15 @@ def extract_matchresults_groups(both_groups_soup, group_name):
     return pd.DataFrame(groupmatch_list)
 
 
-def combine_matchresults_groups(soup):
+def combine_matchresults_groups(soup,region,stage):
     """
     Main function that takes in the main HTML webpage of the group and outputs a table that has the match results and
     information across both groups. Uses extract_matchresults_groups() as helper function to get information
     from each group, then combines them into one.
 
     :param soup: Soup object containing the HTML page of the entire group stage, contains info on both groups
+    :param region: string specifying region
+    :param stage: string specifying VCT stage
     :return: DataFrame with group match results and other information
     """
 
@@ -75,5 +77,5 @@ def combine_matchresults_groups(soup):
     bothtab.index = np.arange(bothtab.shape[0])
 
     # Export csv
-    bothtab.to_csv('groupmatchresults.csv',index=False)
+    bothtab.to_csv("Results/st"+stage+"_"+region+'_groupmatchresults.csv',index=False)
     return bothtab
