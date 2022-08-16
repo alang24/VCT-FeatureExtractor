@@ -34,14 +34,13 @@ def addpickbanstring(pickbanlist,gendf):
     cleaned_dict = {}
     count = 0 
 
-    for banpick in pickbanlist:
+    for banpick in pickbanlist[:7]:
         # Each list element formatted as follows: "Teamname ban/pick Mapname", except for decider: "Map remains"
         breakdown = banpick.strip().split(' ')
 
         # Get team name and map it to Team A or Team B
         teamname = breakdown[0]
         teamletter = "A" if teamname == gendf.at[0,'A:Name'] else "B"
-
 
         if len(breakdown) == 2:
             # Handles the decider map since formatted differently
@@ -72,8 +71,8 @@ def get_seriesinfo_gen(matchheadersoup,namelookup):
     4) Pick ban result (two bans, two picks, two bans, leftover)
 
     :param matchheadersoup: Soup object containing the HTML page of the match's header
-    :param namelookup: string specifying region
-    :return: DataFrame with group match results and other information
+    :param namelookup: dataframe with lookups between abbreviated and full names
+    :return: DataFrame with information of best of X series
     """
     # 1) Get Match Date 
     matchdate = matchheadersoup.find("div",class_="moment-tz-convert")['data-utc-ts']
@@ -94,7 +93,6 @@ def get_seriesinfo_gen(matchheadersoup,namelookup):
     gen_df = pd.DataFrame(np.array([[team1,team1score,team2,team2score]]))
     gen_df.columns = [team+":"+param for team in ['A','B'] for param in ['Name','Maps Won']]
     gen_df.insert(0,"Date",matchdate)
-
 
     # 4) Convert Map Pickban string: Team 1/2's Ban 1/2, Pick, Decider
     if matchheadersoup.find("div",class_="match-header-note") is not None:
