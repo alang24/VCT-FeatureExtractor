@@ -33,7 +33,6 @@ def addpickbanstring(pickbanlist,gendf):
     cleaned_list = []
     cleaned_dict = {}
     count = 0 
-
     for banpick in pickbanlist[:7]:
         # Each list element formatted as follows: "Teamname ban/pick Mapname", except for decider: "Map remains"
         breakdown = banpick.strip().split(' ')
@@ -47,14 +46,25 @@ def addpickbanstring(pickbanlist,gendf):
             cleaned_list.append(breakdown[0].strip())
             cleaned_dict['Decider'] = breakdown[0].strip()
         else:
-            if breakdown[1] == 'pick':
-                cleaned_list.append(breakdown[-1].strip())
-                cleaned_dict[teamletter+':Pick'] = breakdown[-1].strip()
-            else:
-                if count <= 1:
-                    cleaned_dict[teamletter+':Ban 1'] = breakdown[-1].strip()
+            if gendf.at[0,'BofX'] == 3:
+                if breakdown[1] == 'pick':
+                    cleaned_list.append(breakdown[-1].strip())
+                    cleaned_dict[teamletter+':Pick'] = breakdown[-1].strip()
                 else:
-                    cleaned_dict[teamletter+':Ban 2'] = breakdown[-1].strip()
+                    if count <= 1:
+                        cleaned_dict[teamletter+':Ban 1'] = breakdown[-1].strip()
+                    else:
+                        cleaned_dict[teamletter+':Ban 2'] = breakdown[-1].strip()
+            elif gendf.at[0,'BofX'] == 5:
+                #print(count)
+                if breakdown[1] == 'ban':
+                    cleaned_list.append(breakdown[-1].strip())
+                    cleaned_dict[teamletter+':Ban'] = breakdown[-1].strip()
+                else:
+                    if count <= 3:
+                        cleaned_dict[teamletter+':Pick 1'] = breakdown[-1].strip()
+                    else:
+                        cleaned_dict[teamletter+':Pick 2'] = breakdown[-1].strip()
         count += 1
 
     # Convert dictionary into dataframe and concatenate to DF
@@ -97,7 +107,14 @@ def get_seriesinfo_gen(matchheadersoup,namelookup):
     # 4) Convert Map Pickban string: Team 1/2's Ban 1/2, Pick, Decider
     if matchheadersoup.find("div",class_="match-header-note") is not None:
         pickbanlist = matchheadersoup.find("div",class_="match-header-note").text.strip().split(';')
+        bancount = 0 
+        for banpick in pickbanlist[:7]:
+            if banpick.strip().split(' ')[1] == 'ban':
+                bancount += 1
+
+        gen_df['BofX'] = 3 if bancount == 4 else 5
         gen_df = addpickbanstring(pickbanlist,gen_df.copy())
+        #print(gen_df)
     else:
         # Exception handling for Optic vs. Rise match that had no pickban string on vlr.gg page
         gen_df["Pick/Ban"] = "No Pickban info"

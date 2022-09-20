@@ -2,3 +2,5 @@ __pycache__/
 TestFiles/
 *.txt
 Results/
+VLR/VCT22_EUNA_Groups/Results/
+URL/

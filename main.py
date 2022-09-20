@@ -1,6 +1,6 @@
-import requests
+#import requests
 from bs4 import BeautifulSoup
-import csv
+import requests
 import time
 import pandas as pd
 import lxml
@@ -28,11 +28,14 @@ def getname(val,nameslookup,fulltoabbrev):
         return nameslookup.loc[nameslookup["Abbrev Name"]==val,'Full Name'].iat[0]
 
 
-def pulldata(urldf):
+def pulldata(urldf,stage,region,form):
     """
     Gets information from VLR match page
 
     :param urldf: DF of VLR url ends to pull information from 
+    :param stage: str of vct stage
+    :param region: str of vct region
+    :param form: str of groupstage/bracket
     """
     seriesinfo_genlist = []
     seriesinfo_mapslist = []
@@ -42,8 +45,8 @@ def pulldata(urldf):
     # Lookup table between teams' abbreviated and full names on VLR
     nameslookup = pd.read_csv('nateamnames.txt')
 
-    # for i in ['test6.html','test7.html','test8.html','test9.html']:
-    #     with open(i, "r", encoding='utf-8') as file:
+    # for i in ['test2.html']:
+    #     with open('TestFiles/'+i, "r", encoding='utf-8') as file:
     #         soupparser = BeautifulSoup(file,"lxml")
 
     for ind,dfrow in urldf.iterrows():
@@ -53,9 +56,9 @@ def pulldata(urldf):
 
         result = requests.get(url)
         soupparser = BeautifulSoup(result.text,'lxml')
-
+ 
         # 1) Extract information of Bo3 from header
-        match_header_soup = soupparser.find("div",class_="wf-card match-header")
+        match_header_soup = soupparser.find("div",class_="match-header")
         seriesinfo_gen=get_seriesinfo_gen(match_header_soup,nameslookup.copy())
         mapsplayed = int(seriesinfo_gen.loc[0,'A:Maps Won'])+int(seriesinfo_gen.loc[0,'B:Maps Won'])
 
@@ -65,7 +68,11 @@ def pulldata(urldf):
 
         # 3) Extract information of Bo3 about its maps and roundhistory of each map
         maps_stats_soup = soupparser.find("div",class_="vm-stats")
-        seriesinfo_maps,seriesinfo_rndhist = get_seriesinfo_maps(maps_stats_soup,nameslookup,mapsplayed)
+
+        if matchstr == '20220213-OPTC-Rise':
+            seriesinfo_gen['BofX'] = 3
+
+        seriesinfo_maps,seriesinfo_rndhist = get_seriesinfo_maps(maps_stats_soup,nameslookup,mapsplayed,seriesinfo_gen.at[0,'BofX'])
 
         # 4) Extract player statistics in each map of series for both teams
         overview = combine_teams_overview(maps_stats_soup,seriesinfo_maps)
@@ -99,14 +106,18 @@ def pulldata(urldf):
     seriesinfo_rndhist_df = pd.concat(seriesinfo_rndhistlist)
     overview_df = pd.concat(overviewlist)
 
-    seriesinfo_gen_df.to_csv('Results/seriesinfogen.csv')
-    seriesinfo_maps_df.to_csv('Results/seriesinfomaps.csv')
-    seriesinfo_rndhist_df.to_csv('Results/seriesinforndhist.csv')
-    overview_df.to_csv('Results/overview.csv')
+    seriesinfo_gen_df.to_csv('Results/'+stage+'_'+region+'_'+form+'_seriesinfogen.csv')
+    seriesinfo_maps_df.to_csv('Results/'+stage+'_'+region+'_'+form+'_seriesinfomaps.csv')
+    seriesinfo_rndhist_df.to_csv('Results/'+stage+'_'+region+'_'+form+'_seriesinforndhist.csv')
+    overview_df.to_csv('Results/'+stage+'_'+region+'_'+form+'_overview.csv')
     return 
 
 if __name__ == "__main__":
-    matchresults = pd.read_csv('st1_na_groupmatchresults.csv')
-    pulldata(matchresults)
+    filename = 'st2_na_group_matchresults.csv'
+    matchresults = pd.read_csv(filename)
+    stage = filename.split('_')[0]
+    region = filename.split('_')[1]
+    form = filename.split('_')[2]
+    pulldata(matchresults,stage,region,form)
 
 

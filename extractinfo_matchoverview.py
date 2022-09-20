@@ -205,7 +205,7 @@ def combine_roundhistory(maprow,statscontainer):
         return get_roundhistory(regulation,sidelookup,False)
 
 
-def get_seriesinfo_maps(mapsstats_soup,namelookup,mapsplayed):
+def get_seriesinfo_maps(mapsstats_soup,namelookup,mapsplayed,bofx):
     """
     Gets information about each map of the best of X series from VLR match page overview section 
     1) Each map's: name, number, VLR ID
@@ -215,17 +215,23 @@ def get_seriesinfo_maps(mapsstats_soup,namelookup,mapsplayed):
     :param mapsstats_soup: Soup object containing the HTML page of the match's stat page
     :param namelookup: dataframe with lookups between abbreviated and full names
     :param mapsplayed: int showing how many maps played in series
+    :param bofx: int showing best of X
     :return df: DataFrame with information on each map of the best of X series
     :return roundhist_df: DataFrame with the round history of each map
     """
     # Soup that contains row of maps
-    maps_header = mapsstats_soup.find("div",class_="vm-stats-gamesnav noselect")
-
+    if bofx == 3:
+        maps_header = mapsstats_soup.find("div",class_="vm-stats-gamesnav noselect").contents[3:9:2]
+    elif bofx == 5:
+        maps_header = mapsstats_soup.find("div",class_="vm-stats-gamesnav noselect mod-long").contents[3:13:2]
+        
     # 1) Gets Map name, number, and VLR ID and converts to DataFrame
     series_list = []
-    for map_name in maps_header.contents[3:9:2]:
+
+    for map_name in maps_header:
         eachmap_dict = [map_name.text.strip().split()[0]+'-'+map_name.text.strip().split()[1]+'-'+map_name["data-game-id"]]
         series_list.append(eachmap_dict) 
+
     df = pd.DataFrame(series_list,columns=['Map']).iloc[:mapsplayed]
 
     # Soup that contains the Overview stats tables

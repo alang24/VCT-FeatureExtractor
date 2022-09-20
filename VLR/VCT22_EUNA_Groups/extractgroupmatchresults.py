@@ -77,5 +77,5 @@ def combine_matchresults_groups(soup,region,stage):
     bothtab.index = np.arange(bothtab.shape[0])
 
     # Export csv
-    bothtab.to_csv("Results/st"+stage+"_"+region+'_groupmatchresults.csv',index=False)
+    bothtab.to_csv("Results/st"+stage+"_"+region+'_group_matchresults.csv',index=False)
     return bothtab

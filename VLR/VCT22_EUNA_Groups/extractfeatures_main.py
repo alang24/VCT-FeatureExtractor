@@ -7,7 +7,7 @@ from extractgroupmatchresults import combine_matchresults_groups
 
 if __name__ == "__main__":
     stage = input("Stage (1 or 2): ")
-    region = input("Region (NA or EU): ")
+    region = input("Region (NA or EU): ").lower()
     urllookup = pd.read_csv('urllookup.txt')
     url = urllookup.loc['Stage'+stage,region.upper()]
     result = requests.get(url)
