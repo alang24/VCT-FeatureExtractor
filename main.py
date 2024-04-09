@@ -1,4 +1,3 @@
-#import requests
 from bs4 import BeautifulSoup
 import requests
 import time
@@ -28,14 +27,15 @@ def getname(val,nameslookup,fulltoabbrev):
         return nameslookup.loc[nameslookup["Abbrev Name"]==val,'Full Name'].iat[0]
 
 
-def pulldata(urldf,stage,region,form):
+def pulldata(urldf,labelstr):
     """
     Gets information from VLR match page
 
     :param urldf: DF of VLR url ends to pull information from 
-    :param stage: str of vct stage
-    :param region: str of vct region
-    :param form: str of groupstage/bracket
+    :param labelstr: results identifier (year_tier_region_stage_format)
+    
+    tier (champions, masters, challengers)
+    form (groupstage/bracket if necessary)
     """
     seriesinfo_genlist = []
     seriesinfo_mapslist = []
@@ -50,8 +50,7 @@ def pulldata(urldf,stage,region,form):
     #         soupparser = BeautifulSoup(file,"lxml")
 
     for ind,dfrow in urldf.iterrows():
-        print("Pulling results for match:")
-        print(dfrow['Winner'],"vs.",dfrow['Loser'])
+        print("Pulling results for match")
         url = "https://www.vlr.gg"+ dfrow['URL']
 
         result = requests.get(url)
@@ -66,7 +65,7 @@ def pulldata(urldf,stage,region,form):
         matchstr=''.join(seriesinfo_gen.loc[0,'Date'][:10].split('-')) + '-'
         matchstr += seriesinfo_gen.loc[0,'A:Name'] + '-' + seriesinfo_gen.loc[0,'B:Name']
 
-        # 3) Extract information of Bo3 about its maps and roundhistory of each map
+        # 3) Extract information of BoX about its maps and roundhistory of each map
         maps_stats_soup = soupparser.find("div",class_="vm-stats")
 
         if matchstr == '20220213-OPTC-Rise':
@@ -94,7 +93,8 @@ def pulldata(urldf,stage,region,form):
         seriesinfo_mapslist.append(seriesinfo_maps)
         seriesinfo_rndhistlist.append(seriesinfo_rndhist)
         overviewlist.append(overview)
-        print("Match Info Pull Complete!")
+        print("Match Info Pull Complete for:")
+        print(matchstr.split('-')[1],"vs.",matchstr.split('-')[2])
         print("Waiting...")
         time.sleep(60)
 
@@ -106,18 +106,17 @@ def pulldata(urldf,stage,region,form):
     seriesinfo_rndhist_df = pd.concat(seriesinfo_rndhistlist)
     overview_df = pd.concat(overviewlist)
 
-    seriesinfo_gen_df.to_csv('Results/'+stage+'_'+region+'_'+form+'_seriesinfogen.csv')
-    seriesinfo_maps_df.to_csv('Results/'+stage+'_'+region+'_'+form+'_seriesinfomaps.csv')
-    seriesinfo_rndhist_df.to_csv('Results/'+stage+'_'+region+'_'+form+'_seriesinforndhist.csv')
-    overview_df.to_csv('Results/'+stage+'_'+region+'_'+form+'_overview.csv')
+
+    seriesinfo_gen_df.to_csv('Results/'+labelstr+'_seriesinfogen.csv')
+    seriesinfo_maps_df.to_csv('Results/'+labelstr+'_seriesinfomaps.csv')
+    seriesinfo_rndhist_df.to_csv('Results/'+labelstr+'_seriesinforndhist.csv')
+    overview_df.to_csv('Results/'+labelstr+'_overview.csv')
     return 
 
+
 if __name__ == "__main__":
-    filename = 'st2_na_group_matchresults.csv'
-    matchresults = pd.read_csv(filename)
-    stage = filename.split('_')[0]
-    region = filename.split('_')[1]
-    form = filename.split('_')[2]
-    pulldata(matchresults,stage,region,form)
+    filename = '2022_chall_na_st2_group_matchresults.csv'
+    matchresults = pd.read_csv("URL/"+filename)
+    pulldata(matchresults,"_".join(filename.split('_')[:5]))
 
 
