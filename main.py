@@ -45,16 +45,16 @@ def pulldata(urldf,labelstr):
     # Lookup table between teams' abbreviated and full names on VLR
     nameslookup = pd.read_csv('nateamnames.txt')
 
-    # for i in ['test2.html']:
-    #     with open('TestFiles/'+i, "r", encoding='utf-8') as file:
-    #         soupparser = BeautifulSoup(file,"lxml")
+    for i in ['test12.html']:
+        with open('TestFiles/'+i, "r", encoding='utf-8') as file:
+            soupparser = BeautifulSoup(file,"lxml")
 
     for ind,dfrow in urldf.iterrows():
         print("Pulling results for match")
-        url = "https://www.vlr.gg"+ dfrow['URL']
+        # url = "https://www.vlr.gg"+ dfrow['URL']
 
-        result = requests.get(url)
-        soupparser = BeautifulSoup(result.text,'lxml')
+        # result = requests.get(url)
+        # soupparser = BeautifulSoup(result.text,'lxml')
  
         # 1) Extract information of Bo3 from header
         match_header_soup = soupparser.find("div",class_="match-header")
@@ -96,8 +96,10 @@ def pulldata(urldf,labelstr):
         print("Match Info Pull Complete for:")
         print(matchstr.split('-')[1],"vs.",matchstr.split('-')[2])
         print("Waiting...")
-        time.sleep(60)
-
+        print(matchstr)
+        break
+        #time.sleep(60)
+        
         
     print("All Done! Combining DataFrames...")
     # 7) Convert the list of DataFrames into a DataFrame 
@@ -117,6 +119,6 @@ def pulldata(urldf,labelstr):
 if __name__ == "__main__":
     filename = '2022_chall_na_st2_group_matchresults.csv'
     matchresults = pd.read_csv("URL/"+filename)
-    pulldata(matchresults,"_".join(filename.split('_')[:5]))
+    pulldata(matchresults,"c9lev")
 
 

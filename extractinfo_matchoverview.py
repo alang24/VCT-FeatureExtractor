@@ -284,8 +284,13 @@ def get_team_overview(overview_oneteam_soup):
                 triplet= []
                 for s in stat.find("span",class_='stats-sq').find_all("span"):
                     stattext = s.text.strip()
-                    if stattext != "":
-                        triplet.append((stattext))
+                    if len(triplet) == 3:
+                        break
+                    if 'mod-vlr-deaths' in stat.get('class'):
+                        if stattext.isnumeric():
+                            triplet.append(stattext)
+                    elif stattext != "" and stattext != '/':
+                        triplet.append(stattext)
                     else:
                         triplet.append("N/A")
                 player_stat_list.append(triplet)
@@ -293,7 +298,7 @@ def get_team_overview(overview_oneteam_soup):
                 stattext = stat.text.strip()
                 if stattext != "":
                     player_stat_list.append((stattext))
-            
+
         # Regex to nicely format team name and player name
         findteamname = re.compile("[A-Za-z0-9 ]+")
         playerandteam =  re.findall(findteamname, player_stat_list[0]) 
@@ -303,7 +308,7 @@ def get_team_overview(overview_oneteam_soup):
 
         # Combines player and team list with the rest
         player_stat_list = playerandteam + player_stat_list[1:]
-        player_stat_list[5] = player_stat_list[5][2:5]
+        # player_stat_list[5] = player_stat_list[5][2:5]
         oneteam_list.append(player_stat_list)
 
 
@@ -328,7 +333,7 @@ def get_team_overview(overview_oneteam_soup):
 
     for side_ind in np.arange(len(sides_list)):
         # Indexes into list to get respective quantity for side
-        side_statsonly_df = statsonly_df.applymap(lambda cell: cell[side_ind])
+        side_statsonly_df = statsonly_df.map(lambda cell: cell[side_ind])
         side_statsonly_df["Side"] = sides_list[side_ind]
         side_statsonly_df = pd.concat([df.iloc[:,:3],side_statsonly_df],axis=1)
         all3.append(side_statsonly_df)
